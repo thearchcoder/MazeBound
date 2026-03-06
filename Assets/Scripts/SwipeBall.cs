@@ -17,6 +17,7 @@ public class SwipeBall : MonoBehaviour
 	[SerializeField] private bool m_UseKeyboardForTesting = true;
 	[SerializeField] private float m_KeyboardTiltSpeed = 2f;
 	[SerializeField] private float m_MaxVelocity = 5f;
+	public Color ballColor;
 	private Rigidbody m_Rigidbody;
 	private Vector3 m_SimulatedAccel = Vector3.zero;
 	private bool m_IsEnteringHole = false;

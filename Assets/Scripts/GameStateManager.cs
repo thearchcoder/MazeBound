@@ -4,6 +4,8 @@ public class GameStateManager : MonoBehaviour
 {
 	public static GameStateManager instance;
 
+	public const int MAX_LEVEL = 9;
+
 	public bool isPlaying = false;
 	public int currentLevel = 1;
 	public int maxUnlockedLevel = 1;
@@ -64,6 +66,12 @@ public class GameStateManager : MonoBehaviour
 
 	public void NextLevel()
 	{
+		if (currentLevel >= MAX_LEVEL)
+		{
+			Debug.Log("Already at max level!");
+			return;
+		}
+
 		currentLevel++;
 		UnlockLevel(currentLevel);
 		LoadLevel(currentLevel);
@@ -71,7 +79,7 @@ public class GameStateManager : MonoBehaviour
 
 	public void UnlockLevel(int level)
 	{
-		if (level > maxUnlockedLevel)
+		if (level > maxUnlockedLevel && level <= MAX_LEVEL)
 		{
 			maxUnlockedLevel = level;
 			SaveProgress();
@@ -87,6 +95,7 @@ public class GameStateManager : MonoBehaviour
 	void LoadProgress()
 	{
 		maxUnlockedLevel = PlayerPrefs.GetInt("MaxUnlockedLevel", 1);
+		maxUnlockedLevel = Mathf.Min(maxUnlockedLevel, MAX_LEVEL);
 		currentLevel = maxUnlockedLevel;
 	}
 }

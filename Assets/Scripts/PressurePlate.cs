@@ -3,11 +3,6 @@ using UnityEngine.Events;
 
 public class PressurePlate : MonoBehaviour
 {
-	[Header("Plate Settings")]
-	public bool requiresWeight = true;
-	public Color activatedColor = new Color(0.2f, 0.8f, 0.2f);
-	public Color deactivatedColor = new Color(0.5f, 0.5f, 0.5f);
-
 	[Header("Events")]
 	public UnityEvent onActivated = new UnityEvent();
 	public UnityEvent onDeactivated = new UnityEvent();
@@ -78,7 +73,7 @@ public class PressurePlate : MonoBehaviour
 		if (other.CompareTag("Ball"))
 		{
 			ballsOnPlate--;
-			if (ballsOnPlate <= 0 && isActivated && requiresWeight)
+			if (ballsOnPlate <= 0 && isActivated)
 			{
 				ballsOnPlate = 0;
 				Deactivate();

@@ -270,43 +270,6 @@ public class MazeGenerator : MonoBehaviour {
 		plate.AddComponent<PressurePlate>();
 	}
 
-	void CreateBarrier(LevelConfig config, int grid_y, int axis, int start_x, int end_x, GameObject pressurePlate) {
-		float cell_size = 1.0f / Mathf.Max(config.width, config.height);
-		float offset_x = -0.5f * config.width * cell_size;
-		float offset_y = -0.5f * config.height * cell_size;
-		Quaternion rotation = GetRotationFromAxis(config.axis);
-
-		for (int x = start_x; x <= end_x; x++) {
-			Vector3 local_pos = new Vector3(
-				offset_x + (x + 0.5f) * cell_size,
-				offset_y + (grid_y + 0.5f) * cell_size,
-				0.45f
-			);
-			Vector3 barrier_position = rotation * local_pos;
-
-			GameObject barrier = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			barrier.name = "Barrier";
-			barrier.transform.position = barrier_position;
-			barrier.transform.rotation = rotation;
-			barrier.transform.localScale = new Vector3(cell_size * 0.3f, cell_size, cell_size * 3.0f);
-			barrier.transform.parent = transform;
-
-			Material barrier_mat = new Material(Shader.Find("Unlit/Color"));
-			barrier_mat.color = new Color(1.0f, 1.0f, 0.3f);
-			barrier.GetComponent<Renderer>().material = barrier_mat;
-
-			ControllableBarrier barrierScript = barrier.AddComponent<ControllableBarrier>();
-
-			if (pressurePlate != null) {
-				PressurePlate plateScript = pressurePlate.GetComponent<PressurePlate>();
-				if (plateScript != null) {
-					plateScript.onActivated.AddListener(barrierScript.Open);
-					plateScript.onDeactivated.AddListener(barrierScript.Close);
-				}
-			}
-		}
-	}
-
 	void CreateSingleBarrier(LevelConfig config, int grid_x, int grid_y, List<Vector2Int> allGatePositions, int gateIndex, GameObject pressurePlate) {
 		float cell_size = 1.0f / Mathf.Max(config.width, config.height);
 		float offset_x = -0.5f * config.width * cell_size;
@@ -500,38 +463,6 @@ public class MazeGenerator : MonoBehaviour {
 		win_area_component.requiredColor = area_color;
 	}
 
-	void PositionBalls(LevelConfig config, int grid_x, int grid_y, int color_index) {
-		GameObject[] existing_balls = GameObject.FindGameObjectsWithTag("Ball");
-		if (existing_balls.Length == 0) return;
-
-		GameObject ball = existing_balls[0];
-		for (int i = 1; i < existing_balls.Length; i++) {
-			Destroy(existing_balls[i]);
-		}
-
-		float cell_size = 1.0f / Mathf.Max(config.width, config.height);
-		float offset_x = -0.5f * config.width * cell_size;
-		float offset_y = -0.5f * config.height * cell_size;
-		Quaternion rotation = GetRotationFromAxis(config.axis);
-
-		Vector3 local_pos = new Vector3(
-			offset_x + (grid_x + 0.5f) * cell_size,
-			offset_y + (grid_y + 0.5f) * cell_size,
-			0.45f
-		);
-		Vector3 ball_position = rotation * local_pos;
-
-		ball.transform.position = ball_position;
-
-		Color ball_color = config.ball_colors[color_index];
-		Renderer ball_renderer = ball.GetComponent<Renderer>();
-		if (ball_renderer != null) ball_renderer.material.color = ball_color;
-
-		BallColor ball_color_component = ball.GetComponent<BallColor>();
-		if (ball_color_component == null) ball_color_component = ball.AddComponent<BallColor>();
-		ball_color_component.color = ball_color;
-	}
-
 	void PositionBall(LevelConfig config, int grid_x, int grid_y, int color_index) {
 		GameObject[] existing_balls = GameObject.FindGameObjectsWithTag("Ball");
 		if (existing_balls.Length <= color_index) return;
@@ -557,9 +488,8 @@ public class MazeGenerator : MonoBehaviour {
 		Renderer ball_renderer = ball.GetComponent<Renderer>();
 		if (ball_renderer != null) ball_renderer.material.color = ball_color;
 
-		BallColor ball_color_component = ball.GetComponent<BallColor>();
-		if (ball_color_component == null) ball_color_component = ball.AddComponent<BallColor>();
-		ball_color_component.color = ball_color;
+		SwipeBall swipeBall = ball.GetComponent<SwipeBall>();
+		if (swipeBall != null) swipeBall.ballColor = ball_color;
 
 		Transform existingRing = ball.transform.Find("BallRing");
 		if (existingRing != null)
@@ -612,22 +542,6 @@ public class MazeGenerator : MonoBehaviour {
 			case MazeAxis.ZPositive: return Quaternion.identity;
 			case MazeAxis.ZNegative: return Quaternion.Euler(0, 180, 0);
 			default: return Quaternion.identity;
-		}
-	}
-
-	Vector3 GetQuadRotation(MazeAxis axis) {
-		switch (axis) {
-			case MazeAxis.XPositive:
-			case MazeAxis.XNegative:
-				return new Vector3(0, 90, 0);
-			case MazeAxis.YPositive:
-			case MazeAxis.YNegative:
-				return new Vector3(90, 0, 0);
-			case MazeAxis.ZPositive:
-			case MazeAxis.ZNegative:
-				return Vector3.zero;
-			default:
-				return Vector3.zero;
 		}
 	}
 

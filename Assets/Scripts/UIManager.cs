@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -13,18 +12,6 @@ public class UIManager : MonoBehaviour
 	[SerializeField] private Button levelLeftButton;
 	[SerializeField] private Button levelRightButton;
 
-	[Header("Sliders")]
-	[SerializeField] private Slider sfxSlider;
-
-	[Header("Settings UI")]
-	[SerializeField] private GameObject panel;
-	[SerializeField] private Button settingsButton;
-	[SerializeField] private Button closeButton;
-
-	[Header("Audio")]
-	private AudioSource audioSource;
-	private AudioClip menuSelectSound;
-
 	private CanvasGroup restartButtonGroup;
 	private CanvasGroup playButtonGroup;
 	private CanvasGroup homeButtonGroup;
@@ -36,23 +23,7 @@ public class UIManager : MonoBehaviour
 
 	void Start()
 	{
-		SetupAudio();
 		SetupCanvasGroups();
-
-		if (panel != null) {
-			panel.SetActive(false);
-
-			RectTransform rect = panel.GetComponent<RectTransform>();
-			if (rect != null) {
-				rect.anchoredPosition = new Vector2(0, rect.anchoredPosition.y);
-			}
-		}
-
-		if (settingsButton != null)
-			settingsButton.onClick.AddListener(OpenSettings);
-
-		if (closeButton != null)
-			closeButton.onClick.AddListener(CloseSettings);
 
 		if (playButton != null)
 			playButton.onClick.AddListener(OnPlayClicked);
@@ -68,15 +39,6 @@ public class UIManager : MonoBehaviour
 
 		if (restartButton != null)
 			restartButton.onClick.AddListener(OnRestartClicked);
-
-		if (SettingsManager.instance != null)
-		{
-			if (sfxSlider != null)
-			{
-				sfxSlider.value = SettingsManager.instance.audioVolume;
-				sfxSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
-			}
-		}
 
 		UpdateButtonVisibility();
 	}
@@ -125,51 +87,8 @@ public class UIManager : MonoBehaviour
 		if (firstUpdate) firstUpdate = false;
 	}
 
-	void SetupAudio()
-	{
-		audioSource = gameObject.AddComponent<AudioSource>();
-		audioSource.playOnAwake = false;
-
-		menuSelectSound = Resources.Load<AudioClip>("Sound/Menu Select");
-		if (menuSelectSound == null)
-			Debug.LogWarning("Could not load Menu Select sound from Resources/Sound/Menu Select");
-		else
-			Debug.Log("Menu Select sound loaded successfully");
-	}
-
-	void PlayButtonSound()
-	{
-		if (audioSource != null && menuSelectSound != null && SettingsManager.instance != null)
-		{
-			audioSource.PlayOneShot(menuSelectSound, SettingsManager.instance.audioVolume);
-		}
-	}
-
-	void OpenSettings()
-	{
-		PlayButtonSound();
-		if (panel != null)
-		{
-			panel.SetActive(true);
-		}
-	}
-
-	void CloseSettings()
-	{
-		PlayButtonSound();
-		if (panel != null)
-			panel.SetActive(false);
-	}
-
-	void OnSFXVolumeChanged(float value)
-	{
-		if (SettingsManager.instance != null)
-			SettingsManager.instance.SetAudioVolume(value);
-	}
-
 	void OnPlayClicked()
 	{
-		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			GameStateManager.instance.StartPlaying();
@@ -178,7 +97,6 @@ public class UIManager : MonoBehaviour
 
 	void OnHomeClicked()
 	{
-		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			GameStateManager.instance.StopPlaying();
@@ -187,7 +105,6 @@ public class UIManager : MonoBehaviour
 
 	void OnLevelLeftClicked()
 	{
-		PlayButtonSound();
 		if (GameStateManager.instance != null && GameStateManager.instance.currentLevel > 1)
 		{
 			GameStateManager.instance.LoadLevel(GameStateManager.instance.currentLevel - 1);
@@ -196,7 +113,6 @@ public class UIManager : MonoBehaviour
 
 	void OnLevelRightClicked()
 	{
-		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			int nextLevel = GameStateManager.instance.currentLevel + 1;
@@ -209,7 +125,6 @@ public class UIManager : MonoBehaviour
 
 	void OnRestartClicked()
 	{
-		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			GameStateManager.instance.ReloadCurrentLevel();
