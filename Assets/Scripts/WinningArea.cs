@@ -53,7 +53,16 @@ public class WinningArea : MonoBehaviour
 
 		if (GameStateManager.instance != null)
 		{
-			GameStateManager.instance.NextLevel();
+			if (GameStateManager.instance.currentLevel >= GameStateManager.MAX_LEVEL)
+			{
+				GameStateManager.instance.StopPlaying();
+			}
+			else
+			{
+				int nextLevel = GameStateManager.instance.currentLevel + 1;
+				GameStateManager.instance.UnlockLevel(nextLevel);
+				GameStateManager.instance.LoadLevel(nextLevel);
+			}
 		}
 	}
 
