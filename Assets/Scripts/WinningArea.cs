@@ -8,8 +8,18 @@ public class WinningArea : MonoBehaviour
 	private static int ballsRemaining = 0;
 	private static bool levelCompleted = false;
 
+	private AudioSource audioSource;
+	private AudioClip winSound;
+
 	void Start()
 	{
+		audioSource = gameObject.AddComponent<AudioSource>();
+		audioSource.playOnAwake = false;
+
+		winSound = Resources.Load<AudioClip>("Sound/Win");
+		if (winSound == null)
+			Debug.LogWarning("Could not load Win sound from Resources/Sound/Win");
+
 		if (totalBalls == -1)
 		{
 			GameObject[] balls = GameObject.FindGameObjectsWithTag("Ball");
@@ -26,6 +36,11 @@ public class WinningArea : MonoBehaviour
 			BallColor ballColor = other.GetComponent<BallColor>();
 			if (ballColor != null && ColorsMatch(ballColor.color, requiredColor))
 			{
+				if (audioSource != null && winSound != null && SettingsManager.instance != null)
+				{
+					audioSource.PlayOneShot(winSound, SettingsManager.instance.audioVolume);
+				}
+
 				SwipeBall swipeBall = other.GetComponent<SwipeBall>();
 				if (swipeBall != null)
 				{

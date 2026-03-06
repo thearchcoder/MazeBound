@@ -551,6 +551,7 @@ public class MazeGenerator : MonoBehaviour {
 		Vector3 ball_position = rotation * local_pos;
 
 		ball.transform.position = ball_position;
+		ball.transform.localScale = Vector3.one * cell_size * 0.95f;
 
 		Color ball_color = config.ball_colors[color_index];
 		Renderer ball_renderer = ball.GetComponent<Renderer>();

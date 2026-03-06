@@ -4,14 +4,8 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-	[Header("UI Panels")]
-	[SerializeField] private GameObject panel;
-	[SerializeField] private GameObject panelContent;
-
-	[Header("Settings Buttons")]
-	[SerializeField] private Button settingsButton;
-	[SerializeField] private Button closeButton;
-	[SerializeField] private Button vibrationButton;
+	[Header("Restart Button")]
+	[SerializeField] private Button restartButton;
 
 	[Header("Game Buttons")]
 	[SerializeField] private Button playButton;
@@ -21,14 +15,17 @@ public class UIManager : MonoBehaviour
 
 	[Header("Sliders")]
 	[SerializeField] private Slider sfxSlider;
-	[SerializeField] private Slider musicSlider;
 
-	[Header("Vibration Icon")]
-	[SerializeField] private Image vibrationIcon;
+	[Header("Settings UI")]
+	[SerializeField] private GameObject panel;
+	[SerializeField] private Button settingsButton;
+	[SerializeField] private Button closeButton;
 
-	private Sprite vibrateOnSprite;
-	private Sprite vibrateOffSprite;
+	[Header("Audio")]
+	private AudioSource audioSource;
+	private AudioClip menuSelectSound;
 
+	private CanvasGroup restartButtonGroup;
 	private CanvasGroup playButtonGroup;
 	private CanvasGroup homeButtonGroup;
 	private CanvasGroup levelLeftButtonGroup;
@@ -39,7 +36,7 @@ public class UIManager : MonoBehaviour
 
 	void Start()
 	{
-		LoadVibrationSprites();
+		SetupAudio();
 		SetupCanvasGroups();
 
 		if (panel != null) {
@@ -57,9 +54,6 @@ public class UIManager : MonoBehaviour
 		if (closeButton != null)
 			closeButton.onClick.AddListener(CloseSettings);
 
-		if (vibrationButton != null)
-			vibrationButton.onClick.AddListener(OnVibrationToggle);
-
 		if (playButton != null)
 			playButton.onClick.AddListener(OnPlayClicked);
 
@@ -72,6 +66,9 @@ public class UIManager : MonoBehaviour
 		if (levelRightButton != null)
 			levelRightButton.onClick.AddListener(OnLevelRightClicked);
 
+		if (restartButton != null)
+			restartButton.onClick.AddListener(OnRestartClicked);
+
 		if (SettingsManager.instance != null)
 		{
 			if (sfxSlider != null)
@@ -79,14 +76,6 @@ public class UIManager : MonoBehaviour
 				sfxSlider.value = SettingsManager.instance.audioVolume;
 				sfxSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
 			}
-
-			if (musicSlider != null)
-			{
-				musicSlider.value = SettingsManager.instance.musicVolume;
-				musicSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
-			}
-
-			UpdateVibrationIcon();
 		}
 
 		UpdateButtonVisibility();
@@ -94,6 +83,13 @@ public class UIManager : MonoBehaviour
 
 	void SetupCanvasGroups()
 	{
+		if (restartButton != null)
+		{
+			restartButtonGroup = restartButton.gameObject.GetComponent<CanvasGroup>();
+			if (restartButtonGroup == null)
+				restartButtonGroup = restartButton.gameObject.AddComponent<CanvasGroup>();
+		}
+
 		if (playButton != null)
 		{
 			playButtonGroup = playButton.gameObject.GetComponent<CanvasGroup>();
@@ -129,28 +125,38 @@ public class UIManager : MonoBehaviour
 		if (firstUpdate) firstUpdate = false;
 	}
 
-	void LoadVibrationSprites()
+	void SetupAudio()
 	{
-		vibrateOnSprite = Resources.Load<Sprite>("Font/vibrate");
-		vibrateOffSprite = Resources.Load<Sprite>("Font/vibrate-off");
+		audioSource = gameObject.AddComponent<AudioSource>();
+		audioSource.playOnAwake = false;
 
-		if (vibrateOnSprite == null)
-			Debug.LogWarning("Could not load vibrate-on sprite from Resources/Font/vibrate");
-		if (vibrateOffSprite == null)
-			Debug.LogWarning("Could not load vibrate-off sprite from Resources/Font/vibrate-off");
+		menuSelectSound = Resources.Load<AudioClip>("Sound/Menu Select");
+		if (menuSelectSound == null)
+			Debug.LogWarning("Could not load Menu Select sound from Resources/Sound/Menu Select");
+		else
+			Debug.Log("Menu Select sound loaded successfully");
+	}
+
+	void PlayButtonSound()
+	{
+		if (audioSource != null && menuSelectSound != null && SettingsManager.instance != null)
+		{
+			audioSource.PlayOneShot(menuSelectSound, SettingsManager.instance.audioVolume);
+		}
 	}
 
 	void OpenSettings()
 	{
+		PlayButtonSound();
 		if (panel != null)
 		{
 			panel.SetActive(true);
-			UpdateVibrationIcon();
 		}
 	}
 
 	void CloseSettings()
 	{
+		PlayButtonSound();
 		if (panel != null)
 			panel.SetActive(false);
 	}
@@ -161,40 +167,9 @@ public class UIManager : MonoBehaviour
 			SettingsManager.instance.SetAudioVolume(value);
 	}
 
-	void OnMusicVolumeChanged(float value)
-	{
-		if (SettingsManager.instance != null)
-			SettingsManager.instance.SetMusicVolume(value);
-	}
-
-	void OnVibrationToggle()
-	{
-		if (SettingsManager.instance != null)
-		{
-			SettingsManager.instance.ToggleVibration();
-			UpdateVibrationIcon();
-		}
-	}
-
-	void UpdateVibrationIcon()
-	{
-		if (vibrationIcon != null && SettingsManager.instance != null)
-		{
-			if (SettingsManager.instance.vibrationEnabled)
-			{
-				if (vibrateOnSprite != null)
-					vibrationIcon.sprite = vibrateOnSprite;
-			}
-			else
-			{
-				if (vibrateOffSprite != null)
-					vibrationIcon.sprite = vibrateOffSprite;
-			}
-		}
-	}
-
 	void OnPlayClicked()
 	{
+		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			GameStateManager.instance.StartPlaying();
@@ -203,6 +178,7 @@ public class UIManager : MonoBehaviour
 
 	void OnHomeClicked()
 	{
+		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			GameStateManager.instance.StopPlaying();
@@ -211,6 +187,7 @@ public class UIManager : MonoBehaviour
 
 	void OnLevelLeftClicked()
 	{
+		PlayButtonSound();
 		if (GameStateManager.instance != null && GameStateManager.instance.currentLevel > 1)
 		{
 			GameStateManager.instance.LoadLevel(GameStateManager.instance.currentLevel - 1);
@@ -219,6 +196,7 @@ public class UIManager : MonoBehaviour
 
 	void OnLevelRightClicked()
 	{
+		PlayButtonSound();
 		if (GameStateManager.instance != null)
 		{
 			int nextLevel = GameStateManager.instance.currentLevel + 1;
@@ -226,6 +204,15 @@ public class UIManager : MonoBehaviour
 			{
 				GameStateManager.instance.LoadLevel(nextLevel);
 			}
+		}
+	}
+
+	void OnRestartClicked()
+	{
+		PlayButtonSound();
+		if (GameStateManager.instance != null)
+		{
+			GameStateManager.instance.ReloadCurrentLevel();
 		}
 	}
 
@@ -237,6 +224,7 @@ public class UIManager : MonoBehaviour
 		int currentLevel = GameStateManager.instance.currentLevel;
 		int maxUnlocked = GameStateManager.instance.maxUnlockedLevel;
 
+		FadeButton(restartButtonGroup, isPlaying, instant);
 		FadeButton(homeButtonGroup, isPlaying, instant);
 		FadeButton(playButtonGroup, !isPlaying, instant);
 		FadeButton(levelLeftButtonGroup, !isPlaying && currentLevel > 1, instant);
