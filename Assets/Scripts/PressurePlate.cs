@@ -87,7 +87,6 @@ public class PressurePlate : MonoBehaviour
 		outerTargetColor = outerBaseColor * 1.5f;
 		innerTargetColor = innerBaseColor * 1.5f;
 		onActivated.Invoke();
-		Debug.Log("Pressure plate activated!");
 	}
 
 	void Deactivate()
@@ -96,7 +95,6 @@ public class PressurePlate : MonoBehaviour
 		outerTargetColor = outerBaseColor;
 		innerTargetColor = innerBaseColor;
 		onDeactivated.Invoke();
-		Debug.Log("Pressure plate deactivated!");
 	}
 
 	public bool IsActivated()

@@ -12,11 +12,12 @@ public enum BallAxis
 public class SwipeBall : MonoBehaviour
 {
 	[SerializeField] private BallAxis m_Face = BallAxis.ZPositive;
-	[SerializeField] private float m_GravityMultiplier = 9.81f;
-	[SerializeField] private float m_FrictionCoefficient = 0.5f;
+	[SerializeField] private float m_GravityMultiplier = 3f;
+	[SerializeField] private float m_LinearDrag = 0.8f;
+	[SerializeField] private float m_RollingResistance = 0.3f;
 	[SerializeField] private bool m_UseKeyboardForTesting = true;
 	[SerializeField] private float m_KeyboardTiltSpeed = 2f;
-	[SerializeField] private float m_MaxVelocity = 5f;
+	[SerializeField] private float m_MaxVelocity = 1.7f;
 	public Color ballColor;
 	private Rigidbody m_Rigidbody;
 	private Vector3 m_SimulatedAccel = Vector3.zero;
@@ -34,6 +35,7 @@ public class SwipeBall : MonoBehaviour
 		m_Rigidbody.useGravity = false;
 		m_Rigidbody.isKinematic = false;
 		m_Rigidbody.freezeRotation = true;
+		m_Rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
 		PhysicsMaterial physicsMaterial = new PhysicsMaterial();
 		physicsMaterial.dynamicFriction = 0f;
@@ -116,6 +118,20 @@ public class SwipeBall : MonoBehaviour
 
 		Vector3 gravity = GetGravityDirection(accel) * m_GravityMultiplier;
 		m_Rigidbody.AddForce(gravity, ForceMode.Acceleration);
+
+		Vector3 velocity = m_Rigidbody.linearVelocity;
+		if (velocity.magnitude > 0.01f)
+		{
+			Vector3 dragForce = -velocity * m_LinearDrag;
+			m_Rigidbody.AddForce(dragForce, ForceMode.Acceleration);
+
+			Vector3 rollingResistance = -velocity.normalized * m_RollingResistance;
+			m_Rigidbody.AddForce(rollingResistance, ForceMode.Acceleration);
+		}
+		else
+		{
+			m_Rigidbody.linearVelocity = Vector3.zero;
+		}
 
 		ConstrainVelocity();
 	}

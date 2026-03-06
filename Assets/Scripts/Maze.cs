@@ -34,7 +34,6 @@ public class MazeGenerator : MonoBehaviour {
 		levelIdText.text = "Level " + level.ToString();
 
 		if (!System.IO.File.Exists(filePath)) {
-			Debug.LogError("Level file not found: " + filePath);
 			return;
 		}
 
@@ -203,20 +202,20 @@ public class MazeGenerator : MonoBehaviour {
 
 	Color GetColorForIndex(int index) {
 		Color[] colors = new Color[] {
-			new Color(1.0f, 1.0f, 0.3f),  // a: yellow
-			new Color(0.3f, 0.85f, 0.3f), // b: grass green
-			new Color(0.3f, 0.7f, 1.0f),  // c: cyan
-			new Color(0.9f, 0.3f, 1.0f),  // d: purple
-			new Color(1.0f, 0.5f, 0.2f),  // e: orange
-			new Color(1.0f, 0.3f, 0.5f),  // f: pink
-			new Color(0.3f, 1.0f, 0.8f),  // g: mint
-			new Color(0.8f, 0.8f, 0.3f),  // h: gold
-			new Color(0.5f, 0.3f, 1.0f)   // i: violet
+			new Color(1.0f, 1.0f, 0.3f),
+			new Color(0.3f, 0.85f, 0.3f),
+			new Color(0.3f, 0.7f, 1.0f),
+			new Color(0.9f, 0.3f, 1.0f),
+			new Color(1.0f, 0.5f, 0.2f),
+			new Color(1.0f, 0.3f, 0.5f),
+			new Color(0.3f, 1.0f, 0.8f),
+			new Color(0.8f, 0.8f, 0.3f),
+			new Color(0.5f, 0.3f, 1.0f)
 		};
 		if (index < colors.Length) {
 			return colors[index];
 		}
-		return new Color(1.0f, 1.0f, 1.0f); // white fallback
+		return new Color(1.0f, 1.0f, 1.0f);
 	}
 
 	void CreatePressurePlate(LevelConfig config, int grid_x, int grid_y, int plateIndex, out GameObject plate) {
@@ -348,7 +347,6 @@ public class MazeGenerator : MonoBehaviour {
 		}
 		else if (existing_balls.Length < config.ball_count) {
 			if (existing_balls.Length == 0) {
-				Debug.LogError("No balls found in scene. Add at least one ball with 'Ball' tag.");
 				return;
 			}
 
@@ -367,6 +365,13 @@ public class MazeGenerator : MonoBehaviour {
 		float offset_y = -0.5f * config.height * cell_size;
 		Quaternion rotation = GetRotationFromAxis(config.axis);
 
+		PhysicsMaterial wallPhysicsMaterial = new PhysicsMaterial();
+		wallPhysicsMaterial.dynamicFriction = 0f;
+		wallPhysicsMaterial.staticFriction = 0f;
+		wallPhysicsMaterial.bounciness = 0f;
+		wallPhysicsMaterial.frictionCombine = PhysicsMaterialCombine.Minimum;
+		wallPhysicsMaterial.bounceCombine = PhysicsMaterialCombine.Minimum;
+
 		for (int i = 0; i < config.width; i++) {
 			for (int j = 0; j < config.height; j++) {
 				Vector3 local_pos = new Vector3(
@@ -383,6 +388,12 @@ public class MazeGenerator : MonoBehaviour {
 					cube.transform.position = rotated_pos;
 					if (brick != null) cube.GetComponent<Renderer>().material = brick;
 					cube.transform.parent = transform;
+
+					Collider wallCollider = cube.GetComponent<Collider>();
+					if (wallCollider != null)
+					{
+						wallCollider.material = wallPhysicsMaterial;
+					}
 
 					float border_size = cell_size * 1.15f;
 					GameObject border_cube = GameObject.CreatePrimitive(PrimitiveType.Cube);

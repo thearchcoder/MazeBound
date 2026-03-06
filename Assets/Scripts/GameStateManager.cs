@@ -68,7 +68,7 @@ public class GameStateManager : MonoBehaviour
 	{
 		if (currentLevel >= MAX_LEVEL)
 		{
-			Debug.Log("Already at max level!");
+			StopPlaying();
 			return;
 		}
 

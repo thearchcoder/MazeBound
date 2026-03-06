@@ -49,8 +49,6 @@ public class WinningArea : MonoBehaviour
 
 	IEnumerator OnLevelComplete()
 	{
-		Debug.Log("Level completed!");
-
 		yield return new WaitForSeconds(1.5f);
 
 		if (GameStateManager.instance != null)
